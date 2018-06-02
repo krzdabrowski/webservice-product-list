@@ -2,6 +2,7 @@ package com.example.trubul.productlist;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -31,7 +32,43 @@ public class MainActivity extends AppCompatActivity implements GestureListener.O
     enum Codes {STARTED, FINISHED, FINISHED_WITH_EX, ENDED_REQUEST}
     Codes mDownloadCode = null;
 
-    IWsdl2CodeEvents events = new IWsdl2CodeEvents() {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        mInventoryProductArrayList = new ArrayList<>();
+        mTagsArrayList = new ArrayList<>();
+
+        // Init RecyclerView, Header and Divider
+        RecyclerView recyclerView = findViewById(R.id.recycler_view);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
+
+        RecyclerViewHeader header = findViewById(R.id.header);
+        header.attachTo(recyclerView);
+
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), layoutManager.getOrientation());
+        recyclerView.addItemDecoration(dividerItemDecoration);
+
+        // Init ItemTouchListener and Adapter
+        recyclerView.addOnItemTouchListener(new GestureListener(this, recyclerView, this));
+        mRecyclerViewAdapter = new RecyclerViewAdapter(this, mInventoryProductArrayList);
+        recyclerView.setAdapter(mRecyclerViewAdapter);
+
+
+        Service1 getService = new Service1(getProductEvents, "http://79.133.199.244/RFIDWebService/service1.asmx?op=GetAllProductList", 180);
+        Service1 saveService = new Service1(saveProductEvents, "http://79.133.199.244/RFIDWebService/service1.asmx?op=SaveProductSelling", 180);
+
+        try {
+            getService.GetAllProductListAsync();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    IWsdl2CodeEvents getProductEvents = new IWsdl2CodeEvents() {
         @Override
         public void Wsdl2CodeStartedRequest() {
             mDownloadCode = Codes.STARTED;
@@ -87,33 +124,27 @@ public class MainActivity extends AppCompatActivity implements GestureListener.O
         }
     };
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+    IWsdl2CodeEvents saveProductEvents = new IWsdl2CodeEvents() {
+        @Override
+        public void Wsdl2CodeStartedRequest() {
 
-        mInventoryProductArrayList = new ArrayList<>();
-        mTagsArrayList = new ArrayList<>();
-
-        // Init RecyclerView and Header
-        RecyclerView recyclerView = findViewById(R.id.recycler_view);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        RecyclerViewHeader header = findViewById(R.id.header);
-        header.attachTo(recyclerView);
-
-
-        recyclerView.addOnItemTouchListener(new GestureListener(this, recyclerView, this));
-        mRecyclerViewAdapter = new RecyclerViewAdapter(this, mInventoryProductArrayList);
-        recyclerView.setAdapter(mRecyclerViewAdapter);
-
-
-        Service1 service = new Service1(events, "http://79.133.199.244/RFIDWebService/service1.asmx?op=GetAllProductList", 180);
-        try {
-            service.GetAllProductListAsync();
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-    }
+
+        @Override
+        public void Wsdl2CodeFinished(String methodName, Object Data) {
+
+        }
+
+        @Override
+        public void Wsdl2CodeFinishedWithException(Exception ex) {
+
+        }
+
+        @Override
+        public void Wsdl2CodeEndedRequest() {
+
+        }
+    };
 
     @Override
     public void onItemClick(View view, int position) {
