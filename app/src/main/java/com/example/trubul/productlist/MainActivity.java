@@ -13,7 +13,10 @@ import com.example.trubul.productlist.AndroidKsoap.com.Wsdl2Code.WebServices.Ser
 import com.example.trubul.productlist.AndroidKsoap.com.Wsdl2Code.WebServices.Service1.InventoryProduct;
 import com.example.trubul.productlist.AndroidKsoap.com.Wsdl2Code.WebServices.Service1.InventoryProductList;
 import com.example.trubul.productlist.AndroidKsoap.com.Wsdl2Code.WebServices.Service1.Service1;
+import com.example.trubul.productlist.AndroidKsoap.com.Wsdl2Code.WebServices.Service1.TagList;
+import com.example.trubul.productlist.AndroidKsoap.com.Wsdl2Code.WebServices.Service1.Tags;
 import com.example.trubul.productlist.AndroidKsoap.com.Wsdl2Code.WebServices.Service1.VectorInventoryProduct;
+import com.example.trubul.productlist.AndroidKsoap.com.Wsdl2Code.WebServices.Service1.VectorTags;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,9 +24,10 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements GestureListener.OnRecyclerClickListener {
 
     private static final String TAG = "MainActivity";
-    Codes mDownloadCode = null;
     private List<InventoryProduct> mInventoryProductArrayList;
+    Codes mDownloadCode = null;
     private RecyclerViewAdapter mRecyclerViewAdapter;
+    private List<String> mTagsArrayList;
     IWsdl2CodeEvents events = new IWsdl2CodeEvents() {
         @Override
         public void Wsdl2CodeStartedRequest() {
@@ -43,10 +47,28 @@ public class MainActivity extends AppCompatActivity implements GestureListener.O
             for (int i = 0; i < productListLength; i++) {
                 InventoryProduct singleProduct = (InventoryProduct) inventoryProductList.getProperty(i);
                 mInventoryProductArrayList.add(singleProduct);
-            }
-            Log.d(TAG, "Wsdl2CodeFinished: length is: " + mInventoryProductArrayList.size());
 
-            mRecyclerViewAdapter.loadNewData(mInventoryProductArrayList);
+                // Get listTags
+                TagList tagList = (TagList) singleProduct.getProperty(17);
+                VectorTags vectorTags = (VectorTags) tagList.getProperty(0);  // Vector<Tags>
+                int vectorTagLength = vectorTags.getPropertyCount();
+
+
+                if (vectorTagLength != 0) {
+                    for (int j = 0; j < vectorTagLength; j++) {
+                        Tags singleTag = (Tags) vectorTags.getProperty(j);
+                        String epc = (String) singleTag.getProperty(1);
+                        if (epc != null) {
+                            mTagsArrayList.add(epc);
+                        }
+                    }
+                }
+            }
+
+            Log.d(TAG, "Wsdl2CodeFinished: mInventoryProductArrayList length is: " + mInventoryProductArrayList.size());
+            Log.d(TAG, "Wsdl2CodeFinished: mTagsArrayList length is: " + mTagsArrayList.size());
+
+            mRecyclerViewAdapter.loadNewData(mInventoryProductArrayList, mTagsArrayList);
         }
 
         @Override
@@ -68,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements GestureListener.O
         setContentView(R.layout.activity_main);
 
         mInventoryProductArrayList = new ArrayList<>();
-
+        mTagsArrayList = new ArrayList<>();
 
         // Init RecyclerView and Header
         RecyclerView recyclerView = findViewById(R.id.recycler_view);
@@ -92,16 +114,14 @@ public class MainActivity extends AppCompatActivity implements GestureListener.O
 
     @Override
     public void onItemClick(View view, int position) {
-        Log.d(TAG, "onItemClick: starts");
-        Toast.makeText(MainActivity.this, "Normal tap at position " + position, Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onItemLongClick(View view, int position) {
-        Log.d(TAG, "onItemLongClick: starts");
-        Toast.makeText(MainActivity.this, "Long tap at position " + position, Toast.LENGTH_SHORT).show();
+        Toast.makeText(MainActivity.this, "Epc is: " + mRecyclerViewAdapter.getTag(position), Toast.LENGTH_LONG).show();
     }
 
     enum Codes {STARTED, FINISHED, FINISHED_WITH_EX, ENDED_REQUEST}
+
+    @Override
+    public void onItemLongClick(View view, int position) {
+        Toast.makeText(MainActivity.this, "Long tap at position " + position, Toast.LENGTH_SHORT).show();
+    }
 
 }

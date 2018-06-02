@@ -19,6 +19,7 @@ import java.util.List;
 class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ProductViewHolder> {
     private static final String TAG = "RecyclerViewAdapter";
     private List<InventoryProduct> mInventoryProductList;
+    private List<String> mTagsList;
     private Context mContext;
 
     RecyclerViewAdapter(Context context, List<InventoryProduct> inventoryProductList) {
@@ -72,17 +73,22 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.Produ
     }
 
     // Update data when new one is downloaded
-    void loadNewData(List<InventoryProduct> newProducts) {
+    void loadNewData(List<InventoryProduct> newProducts, List<String> newTags) {
         mInventoryProductList = newProducts;
+        mTagsList = newTags;
         notifyDataSetChanged();  // tell it to "registered observers" (like RecyclerView) = refresh display
     }
 
     // MOZE SIE PRZYDA DO LONG TAP
-    public InventoryProduct getProduct(int position) {
-        return ((mInventoryProductList != null) && (mInventoryProductList.size() != 0) ? mInventoryProductList.get(position) : null);
+    public String getTag(int position) {
+        if ((mTagsList != null) && (mTagsList.size() != 0)) {
+            return mTagsList.get(position);
+        } else {
+            return null;
+        }
     }
 
-    // 0) ViewHolder - no need to call findViewById() all the time
+    // ViewHolder - no need to call findViewById() all the time
     static class ProductViewHolder extends RecyclerView.ViewHolder {
         TextView idTv;
         TextView modelTv;
