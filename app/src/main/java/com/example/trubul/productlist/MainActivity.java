@@ -25,9 +25,12 @@ public class MainActivity extends AppCompatActivity implements GestureListener.O
 
     private static final String TAG = "MainActivity";
     private List<InventoryProduct> mInventoryProductArrayList;
-    Codes mDownloadCode = null;
     private RecyclerViewAdapter mRecyclerViewAdapter;
     private List<String> mTagsArrayList;
+
+    enum Codes {STARTED, FINISHED, FINISHED_WITH_EX, ENDED_REQUEST}
+    Codes mDownloadCode = null;
+
     IWsdl2CodeEvents events = new IWsdl2CodeEvents() {
         @Override
         public void Wsdl2CodeStartedRequest() {
@@ -117,11 +120,8 @@ public class MainActivity extends AppCompatActivity implements GestureListener.O
         Toast.makeText(MainActivity.this, "Epc is: " + mRecyclerViewAdapter.getTag(position), Toast.LENGTH_LONG).show();
     }
 
-    enum Codes {STARTED, FINISHED, FINISHED_WITH_EX, ENDED_REQUEST}
-
     @Override
     public void onItemLongClick(View view, int position) {
         Toast.makeText(MainActivity.this, "Long tap at position " + position, Toast.LENGTH_SHORT).show();
     }
-
 }

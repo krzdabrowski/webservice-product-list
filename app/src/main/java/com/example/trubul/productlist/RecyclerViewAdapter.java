@@ -79,7 +79,6 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.Produ
         notifyDataSetChanged();  // tell it to "registered observers" (like RecyclerView) = refresh display
     }
 
-    // MOZE SIE PRZYDA DO LONG TAP
     public String getTag(int position) {
         if ((mTagsList != null) && (mTagsList.size() != 0)) {
             return mTagsList.get(position);
@@ -87,6 +86,7 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.Produ
             return null;
         }
     }
+
 
     // ViewHolder - no need to call findViewById() all the time
     static class ProductViewHolder extends RecyclerView.ViewHolder {
@@ -105,5 +105,4 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.Produ
             this.currentPriceTv = itemView.findViewById(R.id.current_price);
         }
     }
-
 }
