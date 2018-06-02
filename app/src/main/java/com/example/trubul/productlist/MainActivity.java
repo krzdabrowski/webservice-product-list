@@ -8,6 +8,8 @@ import android.support.v7.widget.RecyclerView;
 import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.bartoszlipinski.recyclerviewheader2.RecyclerViewHeader;
@@ -35,6 +37,19 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         // Init ArrayLists<>
         mInventoryProductArrayList = new ArrayList<>();
         mTagsArrayList = new ArrayList<>();
+
+        // Init Buttons
+        Button clearBtn = findViewById(R.id.clear_button);
+        Button saveBtn = findViewById(R.id.save_button);
+        clearBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (actionMode != null) {
+                    actionMode.finish();
+                    actionModeCallback.onDestroyActionMode(actionMode);
+                }
+            }
+        });
 
         // Init RecyclerView, Header and Divider
         RecyclerView recyclerView = findViewById(R.id.recycler_view);

@@ -2,7 +2,6 @@ package com.example.trubul.productlist;
 
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -116,7 +115,6 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.Produ
     private List<Integer> getSelectedItemsPosition() {  // Returns positions of selected elements
         List<Integer> items = new ArrayList<>(mSelectedItems.size());
         for (int i = 0; i < mSelectedItems.size(); ++i) {
-            Log.d(TAG, "getSelectedItemsPosition: id is: " + mSelectedItems.keyAt(i));
             items.add(mSelectedItems.keyAt(i));
         }
 
