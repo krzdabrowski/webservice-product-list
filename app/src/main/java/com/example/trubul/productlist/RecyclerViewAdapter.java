@@ -1,8 +1,9 @@
 package com.example.trubul.productlist;
 
-import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +11,7 @@ import android.widget.TextView;
 
 import com.example.trubul.productlist.AndroidKsoap.com.Wsdl2Code.WebServices.Service1.InventoryProduct;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -20,19 +22,24 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.Produ
     private static final String TAG = "RecyclerViewAdapter";
     private List<InventoryProduct> mInventoryProductList;
     private List<String> mTagsList;
-    private Context mContext;
 
-    RecyclerViewAdapter(Context context, List<InventoryProduct> inventoryProductList) {
-        mContext = context;
+    private SparseBooleanArray mSelectedItems;
+    private ProductViewHolder.ClickListener clickListener;
+
+
+    RecyclerViewAdapter(List<InventoryProduct> inventoryProductList, ProductViewHolder.ClickListener clickListener) {
         mInventoryProductList = inventoryProductList;
+        mSelectedItems = new SparseBooleanArray();
+
+        this.clickListener = clickListener;
     }
 
     // 1) onCreateViewHolder - create layout object from XML and then ViewHolder; called by LayoutManager when it needs a new view
     @NonNull
     @Override
     public ProductViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item, parent, false); // adding the inflated view to parent layout = false, is done later
-        return new ProductViewHolder(view);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item, parent, false);
+        return new ProductViewHolder(view, clickListener);
     }
 
     // 2) onBindViewHolder - fill single element with data; called by LayoutManager when it wants new data to be stored in a ViewHolder to display it
@@ -59,6 +66,7 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.Produ
             holder.parametersTv.setText(parameters);
             holder.priceTv.setText(price);
             holder.currentPriceTv.setText(currentPrice);
+            holder.selectedOverlay.setVisibility(isSelected(position) ? View.VISIBLE : View.INVISIBLE);
         }
     }
 
@@ -76,10 +84,10 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.Produ
     void loadNewData(List<InventoryProduct> newProducts, List<String> newTags) {
         mInventoryProductList = newProducts;
         mTagsList = newTags;
-        notifyDataSetChanged();  // tell it to "registered observers" (like RecyclerView) = refresh display
+        notifyDataSetChanged();  // tell it to "registered observers" (like RecyclerView) to refresh display
     }
 
-    public String getTag(int position) {
+    String getTag(int position) {
         if ((mTagsList != null) && (mTagsList.size() != 0)) {
             return mTagsList.get(position);
         } else {
@@ -87,22 +95,84 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.Produ
         }
     }
 
+    // Helper methods to deal with item selection
+    private boolean isSelected(int position) {  // Returns if selected item row is selected
+        return getSelectedItemsPosition().contains(position);
+    }
 
-    // ViewHolder - no need to call findViewById() all the time
-    static class ProductViewHolder extends RecyclerView.ViewHolder {
-        TextView idTv;
-        TextView modelTv;
-        TextView parametersTv;
-        TextView priceTv;
-        TextView currentPriceTv;
+    public void toggleSelection(int position) {  // Toggle the selection of item row at given position
+        if (mSelectedItems.get(position, false)) {
+            mSelectedItems.delete(position);
+        } else {
+            mSelectedItems.put(position, true);
+        }
+        notifyItemChanged(position);
+    }
 
-        ProductViewHolder(View itemView) {
+    public int getSelectedItemsCount() {  // Returns number of selected items
+        return mSelectedItems.size();
+    }
+
+    private List<Integer> getSelectedItemsPosition() {  // Returns positions of selected elements
+        List<Integer> items = new ArrayList<>(mSelectedItems.size());
+        for (int i = 0; i < mSelectedItems.size(); ++i) {
+            Log.d(TAG, "getSelectedItemsPosition: id is: " + mSelectedItems.keyAt(i));
+            items.add(mSelectedItems.keyAt(i));
+        }
+
+        return items;
+    }
+
+    public void clearAllSelections() {  // Do its thing
+        List<Integer> selection = getSelectedItemsPosition();
+        mSelectedItems.clear();
+        for (Integer i: selection) {
+            notifyItemChanged(i);
+        }
+    }
+
+    // ViewHolder - no need to call findViewById() all the time and manage OnClickListeners
+    static class ProductViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
+        private TextView idTv;
+        private TextView modelTv;
+        private TextView parametersTv;
+        private TextView priceTv;
+        private TextView currentPriceTv;
+        private View selectedOverlay;
+        private ClickListener clickListener;
+
+        public interface ClickListener {
+            void onItemClicked(int position);
+            boolean onItemLongClicked(int position);
+        }
+
+        ProductViewHolder(View itemView, ClickListener listener) {
             super(itemView);
-            this.idTv = itemView.findViewById(R.id.id_product);
-            this.modelTv = itemView.findViewById(R.id.model);
-            this.parametersTv = itemView.findViewById(R.id.parameters);
-            this.priceTv = itemView.findViewById(R.id.price);
-            this.currentPriceTv = itemView.findViewById(R.id.current_price);
+            idTv = itemView.findViewById(R.id.id_product);
+            modelTv = itemView.findViewById(R.id.model);
+            parametersTv = itemView.findViewById(R.id.parameters);
+            priceTv = itemView.findViewById(R.id.price);
+            currentPriceTv = itemView.findViewById(R.id.current_price);
+            selectedOverlay = itemView.findViewById(R.id.selected_overlay);
+
+            clickListener = listener;
+            itemView.setOnClickListener(this);
+            itemView.setOnLongClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v) {
+            if (clickListener != null) {
+                clickListener.onItemClicked(getLayoutPosition());
+            }
+        }
+
+        @Override
+        public boolean onLongClick(View v) {
+            if (clickListener != null) {
+                return clickListener.onItemLongClicked(getLayoutPosition());
+            }
+            return false;
         }
     }
 }

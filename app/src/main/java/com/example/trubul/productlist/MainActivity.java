@@ -5,39 +5,34 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
-import android.view.View;
+import android.view.ActionMode;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.bartoszlipinski.recyclerviewheader2.RecyclerViewHeader;
-import com.example.trubul.productlist.AndroidKsoap.com.Wsdl2Code.WebServices.Service1.IWsdl2CodeEvents;
 import com.example.trubul.productlist.AndroidKsoap.com.Wsdl2Code.WebServices.Service1.InventoryProduct;
-import com.example.trubul.productlist.AndroidKsoap.com.Wsdl2Code.WebServices.Service1.InventoryProductList;
 import com.example.trubul.productlist.AndroidKsoap.com.Wsdl2Code.WebServices.Service1.Service1;
-import com.example.trubul.productlist.AndroidKsoap.com.Wsdl2Code.WebServices.Service1.TagList;
-import com.example.trubul.productlist.AndroidKsoap.com.Wsdl2Code.WebServices.Service1.Tags;
-import com.example.trubul.productlist.AndroidKsoap.com.Wsdl2Code.WebServices.Service1.VectorInventoryProduct;
-import com.example.trubul.productlist.AndroidKsoap.com.Wsdl2Code.WebServices.Service1.VectorTags;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements GestureListener.OnRecyclerClickListener {
+public class MainActivity extends AppCompatActivity implements RecyclerViewAdapter.ProductViewHolder.ClickListener {
 
     private static final String TAG = "MainActivity";
-    private List<InventoryProduct> mInventoryProductArrayList;
-    private RecyclerViewAdapter mRecyclerViewAdapter;
-    private List<String> mTagsArrayList;
+    static List<InventoryProduct> mInventoryProductArrayList;
+    static RecyclerViewAdapter mRecyclerViewAdapter;
+    static List<String> mTagsArrayList;
 
-    enum Codes {STARTED, FINISHED, FINISHED_WITH_EX, ENDED_REQUEST}
-    Codes mDownloadCode = null;
-
+    private ActionModeCallback actionModeCallback = new ActionModeCallback();
+    private ActionMode actionMode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Init ArrayLists<>
         mInventoryProductArrayList = new ArrayList<>();
         mTagsArrayList = new ArrayList<>();
 
@@ -52,14 +47,15 @@ public class MainActivity extends AppCompatActivity implements GestureListener.O
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), layoutManager.getOrientation());
         recyclerView.addItemDecoration(dividerItemDecoration);
 
-        // Init ItemTouchListener and Adapter
-        recyclerView.addOnItemTouchListener(new GestureListener(this, recyclerView, this));
-        mRecyclerViewAdapter = new RecyclerViewAdapter(this, mInventoryProductArrayList);
+        // Init Adapter
+        mRecyclerViewAdapter = new RecyclerViewAdapter(mInventoryProductArrayList, this);
         recyclerView.setAdapter(mRecyclerViewAdapter);
 
+        // Init IWsdl2CodeEvents and Service1
+        CodeEventsHandler handler = new CodeEventsHandler();
 
-        Service1 getService = new Service1(getProductEvents, "http://79.133.199.244/RFIDWebService/service1.asmx?op=GetAllProductList", 180);
-        Service1 saveService = new Service1(saveProductEvents, "http://79.133.199.244/RFIDWebService/service1.asmx?op=SaveProductSelling", 180);
+        Service1 getService = new Service1(handler.getGetProductEvents(), "http://79.133.199.244/RFIDWebService/service1.asmx?op=GetAllProductList", 180);
+        Service1 saveService = new Service1(handler.getSaveProductEvents(), "http://79.133.199.244/RFIDWebService/service1.asmx?op=SaveProductSelling", 180);
 
         try {
             getService.GetAllProductListAsync();
@@ -68,91 +64,70 @@ public class MainActivity extends AppCompatActivity implements GestureListener.O
         }
     }
 
-    IWsdl2CodeEvents getProductEvents = new IWsdl2CodeEvents() {
-        @Override
-        public void Wsdl2CodeStartedRequest() {
-            mDownloadCode = Codes.STARTED;
-            Log.i(TAG, "Wsdl2CodeStartedRequest is in onPreExecute() with code: " + mDownloadCode);
-        }
 
-        @Override
-        public void Wsdl2CodeFinished(String methodName, Object Data) {
-            mDownloadCode = Codes.FINISHED;
-            Log.i(TAG, "Wsdl2CodeStartedRequest is in onPostExecute() with not-null data and code: " + mDownloadCode);
-
-            InventoryProductList rawData = (InventoryProductList) Data;
-            VectorInventoryProduct inventoryProductList = (VectorInventoryProduct) rawData.getProperty(0);  // Vector<InventoryProduct>
-            int productListLength = inventoryProductList.getPropertyCount();
-
-            for (int i = 0; i < productListLength; i++) {
-                InventoryProduct singleProduct = (InventoryProduct) inventoryProductList.getProperty(i);
-                mInventoryProductArrayList.add(singleProduct);
-
-                // Get listTags
-                TagList tagList = (TagList) singleProduct.getProperty(17);
-                VectorTags vectorTags = (VectorTags) tagList.getProperty(0);  // Vector<Tags>
-                int vectorTagLength = vectorTags.getPropertyCount();
-
-
-                if (vectorTagLength != 0) {
-                    for (int j = 0; j < vectorTagLength; j++) {
-                        Tags singleTag = (Tags) vectorTags.getProperty(j);
-                        String epc = (String) singleTag.getProperty(1);
-                        if (epc != null) {
-                            mTagsArrayList.add(epc);
-                        }
-                    }
-                }
-            }
-
-            Log.d(TAG, "Wsdl2CodeFinished: mInventoryProductArrayList length is: " + mInventoryProductArrayList.size());
-            Log.d(TAG, "Wsdl2CodeFinished: mTagsArrayList length is: " + mTagsArrayList.size());
-
-            mRecyclerViewAdapter.loadNewData(mInventoryProductArrayList, mTagsArrayList);
-        }
-
-        @Override
-        public void Wsdl2CodeFinishedWithException(Exception ex) {
-            mDownloadCode = Codes.FINISHED_WITH_EX;
-            Log.i(TAG, "Wsdl2CodeStartedRequest got exception with code: " + mDownloadCode + " -> " + ex);
-        }
-
-        @Override
-        public void Wsdl2CodeEndedRequest() {
-            mDownloadCode = Codes.ENDED_REQUEST;
-            Log.i(TAG, "Wsdl2CodeStartedRequest is in onPostExecute() with code: " + mDownloadCode);
-        }
-    };
-
-    IWsdl2CodeEvents saveProductEvents = new IWsdl2CodeEvents() {
-        @Override
-        public void Wsdl2CodeStartedRequest() {
-
-        }
-
-        @Override
-        public void Wsdl2CodeFinished(String methodName, Object Data) {
-
-        }
-
-        @Override
-        public void Wsdl2CodeFinishedWithException(Exception ex) {
-
-        }
-
-        @Override
-        public void Wsdl2CodeEndedRequest() {
-
-        }
-    };
-
+    // ItemClickListeners
     @Override
-    public void onItemClick(View view, int position) {
-        Toast.makeText(MainActivity.this, "Epc is: " + mRecyclerViewAdapter.getTag(position), Toast.LENGTH_LONG).show();
+    public void onItemClicked(int position) {
+        if (actionMode != null) {
+            toggleSelection(position);
+        } else {
+            Toast.makeText(this, "Epc is: " + mRecyclerViewAdapter.getTag(position), Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override
-    public void onItemLongClick(View view, int position) {
-        Toast.makeText(MainActivity.this, "Long tap at position " + position, Toast.LENGTH_SHORT).show();
+    public boolean onItemLongClicked(int position) {
+        if (actionMode == null) {
+            actionMode = startActionMode(actionModeCallback);
+        }
+        toggleSelection(position);
+
+        return true;
+    }
+
+
+    // Toggle selected items and deal with it in ActionMode on toolbar
+    private void toggleSelection(int position) {
+        String wordInflection;
+        mRecyclerViewAdapter.toggleSelection(position);
+        int count = mRecyclerViewAdapter.getSelectedItemsCount();
+
+        if (count == 0) {
+            actionMode.finish();
+        } else {
+            if (count == 1) {
+                wordInflection = "";
+            } else if (count >= 2 && count <= 4) {
+                wordInflection = "y";
+            } else {
+                wordInflection = "ów";
+            }
+
+            actionMode.setTitle("Wybrano: " + String.valueOf(count) + " produkt" + wordInflection);
+            actionMode.invalidate();
+        }
+    }
+
+    private class ActionModeCallback implements ActionMode.Callback {
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            return true;
+        }
+
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            return false;
+        }
+
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            return false;
+        }
+
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+            mRecyclerViewAdapter.clearAllSelections();
+            actionMode = null;
+        }
     }
 }

@@ -1,55 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_gravity="center"
-    android:orientation="horizontal"
-    android:paddingBottom="8dp"
-    android:paddingTop="8dp">
+    android:foreground="?android:attr/selectableItemBackground">
 
-    <TextView
-        android:id="@+id/id_product"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:gravity="start"
-        android:textAlignment="viewStart"
-        tools:text="Id" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:orientation="horizontal"
+        android:elevation="2dp"
+        android:paddingBottom="16dp"
+        android:paddingTop="16dp">
 
-    <TextView
-        android:id="@+id/model"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:gravity="start"
-        android:textAlignment="viewStart"
-        tools:text="Model" />
+        <TextView
+            android:id="@+id/id_product"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="start"
+            android:textAlignment="viewStart"
+            tools:text="Id" />
 
-    <TextView
-        android:id="@+id/parameters"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_weight="4"
-        android:gravity="center"
-        android:textAlignment="center"
-        tools:text="Parametry" />
+        <TextView
+            android:id="@+id/model"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="start"
+            android:textAlignment="viewStart"
+            tools:text="Model" />
 
-    <TextView
-        android:id="@+id/price"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:gravity="end"
-        android:textAlignment="viewEnd"
-        tools:text="Cena" />
+        <TextView
+            android:id="@+id/parameters"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="4"
+            android:gravity="center"
+            android:textAlignment="center"
+            tools:text="Parametry" />
 
-    <TextView
-        android:id="@+id/current_price"
+        <TextView
+            android:id="@+id/price"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="end"
+            android:textAlignment="viewEnd"
+            tools:text="Cena" />
+
+        <TextView
+            android:id="@+id/current_price"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="end"
+            android:textAlignment="viewEnd"
+            tools:text="Aktualna cena" />
+    </LinearLayout>
+
+    <View
+        android:id="@+id/selected_overlay"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:gravity="end"
-        android:textAlignment="viewEnd"
-        tools:text="Aktualna cena" />
-</LinearLayout>
+        android:layout_height="50dp"
+        android:background="@android:color/holo_blue_light"
+        android:elevation="1dp"
+        android:visibility="invisible" />
+
+</FrameLayout>
