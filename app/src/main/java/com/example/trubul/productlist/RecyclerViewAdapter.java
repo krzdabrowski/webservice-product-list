@@ -12,6 +12,7 @@ import com.example.trubul.productlist.AndroidKsoap.com.Wsdl2Code.WebServices.Ser
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by krzysiek on 6/2/18.
@@ -57,8 +58,8 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.Produ
             String idProduct = Integer.toString((Integer) inventoryProductItem.getProperty(0));
             String model = (String) inventoryProductItem.getProperty(7);
             String parameters = inventoryProductItem.getProperty(2) + " " + inventoryProductItem.getProperty(4) + " " + inventoryProductItem.getProperty(6);
-            String price = Float.toString((Float) inventoryProductItem.getProperty(10));
-            String currentPrice = Float.toString((Float) inventoryProductItem.getProperty(11));
+            String price = String.format(Locale.US, "%.2f", (Float) inventoryProductItem.getProperty(10)) + "zł";
+            String currentPrice = String.format(Locale.US, "%.2f", (Float) inventoryProductItem.getProperty(11)) + "zł";
 
             holder.idTv.setText(idProduct);
             holder.modelTv.setText(model);
