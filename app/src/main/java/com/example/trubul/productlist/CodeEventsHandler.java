@@ -1,6 +1,9 @@
 package com.example.trubul.productlist;
 
+import android.app.Activity;
+import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.example.trubul.productlist.AndroidKsoap.com.Wsdl2Code.WebServices.Service1.IWsdl2CodeEvents;
 import com.example.trubul.productlist.AndroidKsoap.com.Wsdl2Code.WebServices.Service1.InventoryProduct;
@@ -20,6 +23,7 @@ class CodeEventsHandler {
     private static final String TAG = "CodeEventsHandler";
     enum Codes {STARTED, FINISHED, FINISHED_WITH_EX, ENDED_REQUEST}
     private Codes mDownloadCode = null;
+    private final Activity mActivity;
 
     private IWsdl2CodeEvents getProductEvents;
     private IWsdl2CodeEvents saveProductEvents;
@@ -33,7 +37,10 @@ class CodeEventsHandler {
     }
 
 
-    CodeEventsHandler() {
+    CodeEventsHandler(Activity activity, Context ctx) {
+        mActivity = activity;
+        final Context context = ctx;
+
         getProductEvents = new IWsdl2CodeEvents() {
             @Override
             public void Wsdl2CodeStartedRequest() {
@@ -77,9 +84,14 @@ class CodeEventsHandler {
             }
 
             @Override
-            public void Wsdl2CodeFinishedWithException(Exception ex) {
+            public void Wsdl2CodeFinishedWithException(final Exception ex) {
                 mDownloadCode = Codes.FINISHED_WITH_EX;
-                Log.i(TAG, "Wsdl2CodeStartedRequest got exception with code: " + mDownloadCode + " -> " + ex);
+//                Log.i(TAG, "Wsdl2CodeStartedRequest got exception with code: " + mDownloadCode + " -> " + ex);
+                mActivity.runOnUiThread(new Runnable() {
+                    public void run() {
+                        Toast.makeText(context, "Error: " + ex, Toast.LENGTH_LONG).show();
+                    }
+                });
             }
 
             @Override
@@ -93,22 +105,34 @@ class CodeEventsHandler {
         saveProductEvents = new IWsdl2CodeEvents() {
             @Override
             public void Wsdl2CodeStartedRequest() {
-
+                mDownloadCode = Codes.STARTED;
+                Log.i(TAG, "Wsdl2CodeStartedRequest is in onPreExecute() with code: " + mDownloadCode);
             }
 
             @Override
             public void Wsdl2CodeFinished(String methodName, Object Data) {
+                mDownloadCode = Codes.FINISHED;
+                Log.i(TAG, "Wsdl2CodeStartedRequest is in onPostExecute() with not-null data and code: " + mDownloadCode);
 
+                String result = (String) Data;
+                Log.d(TAG, "Wsdl2CodeFinished: RESULT IS: " + result);
             }
 
             @Override
-            public void Wsdl2CodeFinishedWithException(Exception ex) {
-
+            public void Wsdl2CodeFinishedWithException(final Exception ex) {
+                mDownloadCode = Codes.FINISHED_WITH_EX;
+//                Log.i(TAG, "Wsdl2CodeStartedRequest got exception with code: " + mDownloadCode + " -> " + ex);
+                mActivity.runOnUiThread(new Runnable() {
+                    public void run() {
+                        Toast.makeText(context, "Error: " + ex, Toast.LENGTH_LONG).show();
+                    }
+                });
             }
 
             @Override
             public void Wsdl2CodeEndedRequest() {
-
+                mDownloadCode = Codes.ENDED_REQUEST;
+                Log.i(TAG, "Wsdl2CodeStartedRequest is in onPostExecute() with code: " + mDownloadCode);
             }
         };
     }

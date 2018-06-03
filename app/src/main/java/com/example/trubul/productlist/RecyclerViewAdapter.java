@@ -9,6 +9,8 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.example.trubul.productlist.AndroidKsoap.com.Wsdl2Code.WebServices.Service1.InventoryProduct;
+import com.example.trubul.productlist.AndroidKsoap.com.Wsdl2Code.WebServices.Service1.InventoryProductList;
+import com.example.trubul.productlist.AndroidKsoap.com.Wsdl2Code.WebServices.Service1.VectorInventoryProduct;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +34,13 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.Produ
         mSelectedItems = new SparseBooleanArray();
 
         this.clickListener = clickListener;
+    }
+
+    // 0) Update data when new one is downloaded
+    void loadNewData(List<InventoryProduct> newProducts, List<String> newTags) {
+        mInventoryProductList = newProducts;
+        mTagsList = newTags;
+        notifyDataSetChanged();  // tell it to "registered observers" (like RecyclerView) to refresh display
     }
 
     // 1) onCreateViewHolder - create layout object from XML and then ViewHolder; called by LayoutManager when it needs a new view
@@ -58,8 +67,8 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.Produ
             String idProduct = Integer.toString((Integer) inventoryProductItem.getProperty(0));
             String model = (String) inventoryProductItem.getProperty(7);
             String parameters = inventoryProductItem.getProperty(2) + " " + inventoryProductItem.getProperty(4) + " " + inventoryProductItem.getProperty(6);
-            String price = String.format(Locale.US, "%.2f", (Float) inventoryProductItem.getProperty(10)) + "zł";
-            String currentPrice = String.format(Locale.US, "%.2f", (Float) inventoryProductItem.getProperty(11)) + "zł";
+            String price = String.format(Locale.GERMAN, "%.2f", (Float) inventoryProductItem.getProperty(10)) + "zł";
+            String currentPrice = String.format(Locale.GERMAN, "%.2f", (Float) inventoryProductItem.getProperty(11)) + "zł";
 
             holder.idTv.setText(idProduct);
             holder.modelTv.setText(model);
@@ -80,12 +89,6 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.Produ
         }
     }
 
-    // Update data when new one is downloaded
-    void loadNewData(List<InventoryProduct> newProducts, List<String> newTags) {
-        mInventoryProductList = newProducts;
-        mTagsList = newTags;
-        notifyDataSetChanged();  // tell it to "registered observers" (like RecyclerView) to refresh display
-    }
 
     String getTag(int position) {
         if ((mTagsList != null) && (mTagsList.size() != 0)) {
@@ -95,12 +98,29 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.Produ
         }
     }
 
+    InventoryProductList getInventoryProductList() {
+        InventoryProductList productList = new InventoryProductList();
+
+        if (getSelectedItemsCount() > 0) {
+            VectorInventoryProduct vectorInventoryProduct = new VectorInventoryProduct();
+            List<Integer> selection = getSelectedItemsPosition();
+
+            for (Integer i: selection) {
+                vectorInventoryProduct.addElement(mInventoryProductList.get(i));
+            }
+
+            productList.setProperty(0, vectorInventoryProduct);
+        }
+
+        return productList;
+    }
+
     // Helper methods to deal with item selection
     private boolean isSelected(int position) {  // Returns if selected item row is selected
         return getSelectedItemsPosition().contains(position);
     }
 
-    public void toggleSelection(int position) {  // Toggle the selection of item row at given position
+    void toggleSelection(int position) {  // Toggle the selection of item row at given position
         if (mSelectedItems.get(position, false)) {
             mSelectedItems.delete(position);
         } else {
@@ -109,7 +129,7 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.Produ
         notifyItemChanged(position);
     }
 
-    public int getSelectedItemsCount() {  // Returns number of selected items
+    int getSelectedItemsCount() {  // Returns number of selected items
         return mSelectedItems.size();
     }
 
@@ -122,7 +142,7 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.Produ
         return items;
     }
 
-    public void clearAllSelections() {  // Do its thing
+    void clearAllSelections() {  // Do its thing
         List<Integer> selection = getSelectedItemsPosition();
         mSelectedItems.clear();
         for (Integer i: selection) {

@@ -13,7 +13,9 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.bartoszlipinski.recyclerviewheader2.RecyclerViewHeader;
+import com.example.trubul.productlist.AndroidKsoap.com.Wsdl2Code.WebServices.Service1.IWsdl2CodeEvents;
 import com.example.trubul.productlist.AndroidKsoap.com.Wsdl2Code.WebServices.Service1.InventoryProduct;
+import com.example.trubul.productlist.AndroidKsoap.com.Wsdl2Code.WebServices.Service1.InventoryProductList;
 import com.example.trubul.productlist.AndroidKsoap.com.Wsdl2Code.WebServices.Service1.Service1;
 
 import java.util.ArrayList;
@@ -38,21 +40,8 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         mInventoryProductArrayList = new ArrayList<>();
         mTagsArrayList = new ArrayList<>();
 
-        // Init Buttons
-        Button clearBtn = findViewById(R.id.clear_button);
-        Button saveBtn = findViewById(R.id.save_button);
-        clearBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (actionMode != null) {
-                    actionMode.finish();
-                    actionModeCallback.onDestroyActionMode(actionMode);
-                }
-            }
-        });
-
         // Init RecyclerView, Header and Divider
-        RecyclerView recyclerView = findViewById(R.id.recycler_view);
+        final RecyclerView recyclerView = findViewById(R.id.recycler_view);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
 
@@ -67,18 +56,46 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         recyclerView.setAdapter(mRecyclerViewAdapter);
 
         // Init IWsdl2CodeEvents and Service1
-        CodeEventsHandler handler = new CodeEventsHandler();
+        CodeEventsHandler handler = new CodeEventsHandler(this, this);
+        IWsdl2CodeEvents getCodeEvents = handler.getGetProductEvents();
+        final IWsdl2CodeEvents saveCodeEvents = handler.getSaveProductEvents();
 
-        Service1 getService = new Service1(handler.getGetProductEvents(), "http://79.133.199.244/RFIDWebService/service1.asmx?op=GetAllProductList", 180);
-        Service1 saveService = new Service1(handler.getSaveProductEvents(), "http://79.133.199.244/RFIDWebService/service1.asmx?op=SaveProductSelling", 180);
+        Service1 getService = new Service1(getCodeEvents, "http://79.133.199.244/RFIDWebService/service1.asmx?op=GetAllProductList", 180);
+        final Service1 saveService = new Service1(saveCodeEvents, "http://79.133.199.244/RFIDWebService/service1.asmx?op=SaveProductSelling", 180);
 
         try {
             getService.GetAllProductListAsync();
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
 
+        // Init Buttons
+        Button clearBtn = findViewById(R.id.clear_button);
+        Button saveBtn = findViewById(R.id.save_button);
+        clearBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (actionMode != null) {
+                    actionMode.finish();
+                    actionModeCallback.onDestroyActionMode(actionMode);
+                }
+            }
+        });
+        saveBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                InventoryProductList productList = mRecyclerViewAdapter.getInventoryProductList();
+
+                if (productList != null) {
+                    try {
+                        saveService.SaveProductSellingAsync(productList);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+    }
 
     // ItemClickListeners
     @Override
@@ -99,7 +116,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
 
         return true;
     }
-
 
     // Toggle selected items and deal with it in ActionMode on toolbar
     private void toggleSelection(int position) {
