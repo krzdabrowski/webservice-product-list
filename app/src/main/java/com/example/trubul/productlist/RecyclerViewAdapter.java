@@ -99,9 +99,10 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.Produ
     }
 
     InventoryProductList getInventoryProductList() {
-        InventoryProductList productList = new InventoryProductList();
+        InventoryProductList productList = null;
 
         if (getSelectedItemsCount() > 0) {
+            productList = new InventoryProductList();
             VectorInventoryProduct vectorInventoryProduct = new VectorInventoryProduct();
             List<Integer> selection = getSelectedItemsPosition();
 

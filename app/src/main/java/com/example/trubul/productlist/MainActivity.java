@@ -27,6 +27,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
     static List<InventoryProduct> mInventoryProductArrayList;
     static RecyclerViewAdapter mRecyclerViewAdapter;
     static List<String> mTagsArrayList;
+    private String mResult;
 
     private ActionModeCallback actionModeCallback = new ActionModeCallback();
     private ActionMode actionMode;
@@ -56,7 +57,7 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         recyclerView.setAdapter(mRecyclerViewAdapter);
 
         // Init IWsdl2CodeEvents and Service1
-        CodeEventsHandler handler = new CodeEventsHandler(this, this);
+        final CodeEventsHandler handler = new CodeEventsHandler(this, this);
         IWsdl2CodeEvents getCodeEvents = handler.getGetProductEvents();
         final IWsdl2CodeEvents saveCodeEvents = handler.getSaveProductEvents();
 
@@ -89,6 +90,12 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
                 if (productList != null) {
                     try {
                         saveService.SaveProductSellingAsync(productList);
+                        Toast.makeText(MainActivity.this, handler.getResult(), Toast.LENGTH_SHORT).show();
+
+                        if (actionMode != null) {
+                            actionMode.finish();
+                            actionModeCallback.onDestroyActionMode(actionMode);
+                        }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

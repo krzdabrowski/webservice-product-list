@@ -27,13 +27,19 @@ class CodeEventsHandler {
 
     private IWsdl2CodeEvents getProductEvents;
     private IWsdl2CodeEvents saveProductEvents;
+    private String mResult = "ok";  // default correct value
 
     IWsdl2CodeEvents getGetProductEvents() {
         return getProductEvents;
     }
-
     IWsdl2CodeEvents getSaveProductEvents() {
         return saveProductEvents;
+    }
+    String getResult() {
+        return mResult;
+    }
+    private void setResult(String result) {
+        mResult = result;
     }
 
 
@@ -114,8 +120,9 @@ class CodeEventsHandler {
                 mDownloadCode = Codes.FINISHED;
                 Log.i(TAG, "Wsdl2CodeStartedRequest is in onPostExecute() with not-null data and code: " + mDownloadCode);
 
-                String result = (String) Data;
+                final String result = (String) Data;
                 Log.d(TAG, "Wsdl2CodeFinished: RESULT IS: " + result);
+                setResult(result);
             }
 
             @Override
