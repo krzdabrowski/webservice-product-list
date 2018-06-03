@@ -1,4 +1,11 @@
 <resources>
     <string name="app_name">Product List</string>
     <string name="not_available_yet">Not available yet</string>
+    <string name="header_id">Id</string>
+    <string name="header_model">Model</string>
+    <string name="header_parameters">Parametry</string>
+    <string name="header_price">Cena</string>
+    <string name="header_current_price">Aktualna cena</string>
+    <string name="button_clear">WYCZYŚĆ</string>
+    <string name="button_save">ZAPISZ</string>
 </resources>

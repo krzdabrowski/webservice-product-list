@@ -27,7 +27,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
     static List<InventoryProduct> mInventoryProductArrayList;
     static RecyclerViewAdapter mRecyclerViewAdapter;
     static List<String> mTagsArrayList;
-    private String mResult;
 
     private ActionModeCallback actionModeCallback = new ActionModeCallback();
     private ActionMode actionMode;
