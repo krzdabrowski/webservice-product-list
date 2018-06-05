@@ -17,7 +17,8 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Created by krzysiek on 6/2/18.
+ * Created by krzysiek
+ * On 6/2/18.
  */
 
 class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ProductViewHolder> {
@@ -26,21 +27,21 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.Produ
     private List<String> mTagsList;
 
     private SparseBooleanArray mSelectedItems;
-    private ProductViewHolder.ClickListener clickListener;
+    private ProductViewHolder.ClickListener mClickListener;
+    private static boolean isEmptyRow = true;
 
 
     RecyclerViewAdapter(List<InventoryProduct> inventoryProductList, ProductViewHolder.ClickListener clickListener) {
         mInventoryProductList = inventoryProductList;
         mSelectedItems = new SparseBooleanArray();
-
-        this.clickListener = clickListener;
+        mClickListener = clickListener;
     }
 
     // 0) Update data when new one is downloaded
     void loadNewData(List<InventoryProduct> newProducts, List<String> newTags) {
         mInventoryProductList = newProducts;
         mTagsList = newTags;
-        notifyDataSetChanged();  // tell it to "registered observers" (like RecyclerView) to refresh display
+        notifyDataSetChanged();  // tell it to registered observers (like RecyclerView) to refresh display
     }
 
     // 1) onCreateViewHolder - create layout object from XML and then ViewHolder; called by LayoutManager when it needs a new view
@@ -48,7 +49,7 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.Produ
     @Override
     public ProductViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item, parent, false);
-        return new ProductViewHolder(view, clickListener);
+        return new ProductViewHolder(view, mClickListener);
     }
 
     // 2) onBindViewHolder - fill single element with data; called by LayoutManager when it wants new data to be stored in a ViewHolder to display it
@@ -62,6 +63,7 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.Produ
             holder.priceTv.setText(R.string.not_available_yet);
             holder.currentPriceTv.setText(R.string.not_available_yet);
         } else {
+            isEmptyRow = false;
             InventoryProduct inventoryProductItem = mInventoryProductList.get(position);
 
             String idProduct = Integer.toString((Integer) inventoryProductItem.getProperty(0));
@@ -151,7 +153,7 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.Produ
         }
     }
 
-    // ViewHolder - no need to call findViewById() all the time and manage OnClickListeners
+    // ViewHolder - no need to call findViewById() all the time and implement OnClickListeners
     static class ProductViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
         private TextView idTv;
         private TextView modelTv;
@@ -182,14 +184,14 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.Produ
 
         @Override
         public void onClick(View v) {
-            if (clickListener != null) {
+            if (clickListener != null && !isEmptyRow) {
                 clickListener.onItemClicked(getLayoutPosition());
             }
         }
 
         @Override
         public boolean onLongClick(View v) {
-            if (clickListener != null) {
+            if (clickListener != null && !isEmptyRow) {
                 return clickListener.onItemLongClicked(getLayoutPosition());
             }
             return false;

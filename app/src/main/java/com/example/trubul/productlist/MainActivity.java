@@ -1,6 +1,7 @@
 package com.example.trubul.productlist;
 
 import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
@@ -21,9 +22,10 @@ import com.example.trubul.productlist.AndroidKsoap.com.Wsdl2Code.WebServices.Ser
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements RecyclerViewAdapter.ProductViewHolder.ClickListener {
+public class MainActivity extends AppCompatActivity implements RecyclerViewAdapter.ProductViewHolder.ClickListener, SwipeRefreshLayout.OnRefreshListener {
 
     private static final String TAG = "MainActivity";
+    private Service1 mGetService;
     static List<InventoryProduct> mInventoryProductArrayList;
     static RecyclerViewAdapter mRecyclerViewAdapter;
     static List<String> mTagsArrayList;
@@ -31,11 +33,16 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
     private ActionModeCallback actionModeCallback = new ActionModeCallback();
     private ActionMode actionMode;
 
+    private SwipeRefreshLayout mySwipeRefreshLayout;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mySwipeRefreshLayout = findViewById(R.id.swipe_refresh);
+//        SwipeRefreshLayout mySwipeRefreshLayout = new SwipeRefreshLayout(this);
+        mySwipeRefreshLayout.setOnRefreshListener(this);
         // Init ArrayLists<>
         mInventoryProductArrayList = new ArrayList<>();
         mTagsArrayList = new ArrayList<>();
@@ -60,14 +67,9 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         IWsdl2CodeEvents getCodeEvents = handler.getGetProductEvents();
         final IWsdl2CodeEvents saveCodeEvents = handler.getSaveProductEvents();
 
-        Service1 getService = new Service1(getCodeEvents, "http://79.133.199.244/RFIDWebService/service1.asmx?op=GetAllProductList", 180);
+        mGetService = new Service1(getCodeEvents, "http://79.133.199.244/RFIDWebService/service1.asmx?op=GetAllProductList", 180);
         final Service1 saveService = new Service1(saveCodeEvents, "http://79.133.199.244/RFIDWebService/service1.asmx?op=SaveProductSelling", 180);
-
-        try {
-            getService.GetAllProductListAsync();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        getProductsFromWebservice();
 
         // Init Buttons
         Button clearBtn = findViewById(R.id.clear_button);
@@ -101,6 +103,14 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
                 }
             }
         });
+    }
+
+    private void getProductsFromWebservice() {
+        try {
+            mGetService.GetAllProductListAsync();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     // ItemClickListeners
@@ -144,6 +154,13 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
             actionMode.invalidate();
         }
     }
+
+    @Override
+    public void onRefresh() {
+        getProductsFromWebservice();
+        mySwipeRefreshLayout.setRefreshing(false);
+    }
+
 
     private class ActionModeCallback implements ActionMode.Callback {
         @Override
