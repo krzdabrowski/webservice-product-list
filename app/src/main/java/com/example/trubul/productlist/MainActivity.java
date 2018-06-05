@@ -22,6 +22,9 @@ import com.example.trubul.productlist.AndroidKsoap.com.Wsdl2Code.WebServices.Ser
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 public class MainActivity extends AppCompatActivity implements RecyclerViewAdapter.ProductViewHolder.ClickListener, SwipeRefreshLayout.OnRefreshListener {
 
     private static final String TAG = "MainActivity";
@@ -33,14 +36,22 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
     private ActionModeCallback actionModeCallback = new ActionModeCallback();
     private ActionMode actionMode;
 
-    private SwipeRefreshLayout mySwipeRefreshLayout;
+//    private SwipeRefreshLayout mySwipeRefreshLayout;
+
+    @BindView(R.id.swipe_refresh) SwipeRefreshLayout mySwipeRefreshLayout;
+    @BindView(R.id.recycler_view) RecyclerView recyclerView;
+    @BindView(R.id.header) RecyclerViewHeader header;
+    @BindView(R.id.clear_button) Button clearBtn;
+    @BindView(R.id.save_button) Button saveBtn;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ButterKnife.bind(this);
 
-        mySwipeRefreshLayout = findViewById(R.id.swipe_refresh);
+//        mySwipeRefreshLayout = findViewById(R.id.swipe_refresh);
 //        SwipeRefreshLayout mySwipeRefreshLayout = new SwipeRefreshLayout(this);
         mySwipeRefreshLayout.setOnRefreshListener(this);
         // Init ArrayLists<>
@@ -48,11 +59,11 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         mTagsArrayList = new ArrayList<>();
 
         // Init RecyclerView, Header and Divider
-        final RecyclerView recyclerView = findViewById(R.id.recycler_view);
+//        final RecyclerView recyclerView = findViewById(R.id.recycler_view);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
 
-        RecyclerViewHeader header = findViewById(R.id.header);
+//        RecyclerViewHeader header = findViewById(R.id.header);
         header.attachTo(recyclerView);
 
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), layoutManager.getOrientation());
@@ -72,8 +83,8 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         getProductsFromWebservice();
 
         // Init Buttons
-        Button clearBtn = findViewById(R.id.clear_button);
-        Button saveBtn = findViewById(R.id.save_button);
+//        Button clearBtn = findViewById(R.id.clear_button);
+//        Button saveBtn = findViewById(R.id.save_button);
         clearBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
