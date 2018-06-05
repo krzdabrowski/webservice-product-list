@@ -27,7 +27,7 @@ class CodeEventsHandler {
 
     private IWsdl2CodeEvents getProductEvents;
     private IWsdl2CodeEvents saveProductEvents;
-    private String mResult = "ok";  // default correct value
+//    private static String mResult;
 
     IWsdl2CodeEvents getGetProductEvents() {
         return getProductEvents;
@@ -35,17 +35,11 @@ class CodeEventsHandler {
     IWsdl2CodeEvents getSaveProductEvents() {
         return saveProductEvents;
     }
-    String getResult() {
-        return mResult;
-    }
-    private void setResult(String result) {
-        mResult = result;
-    }
 
 
-    CodeEventsHandler(Activity activity, Context ctx) {
-        mActivity = activity;
+    CodeEventsHandler(Context ctx, Activity activity) {
         final Context context = ctx;
+        mActivity = activity;
 
         getProductEvents = new IWsdl2CodeEvents() {
             @Override
@@ -71,22 +65,21 @@ class CodeEventsHandler {
                     TagList tagList = (TagList) singleProduct.getProperty(17);
                     VectorTags vectorTags = (VectorTags) tagList.getProperty(0);  // Vector<Tags>
                     int vectorTagLength = vectorTags.getPropertyCount();
+                    Log.d(TAG, "Wsdl2CodeFinished: vectorTagLength is: " + vectorTagLength);
 
                     if (vectorTagLength != 0) {
-                        for (int j = 0; j < vectorTagLength; j++) {
-                            Tags singleTag = (Tags) vectorTags.getProperty(j);
-                            String epc = (String) singleTag.getProperty(1);
-                            if (epc != null) {
-                                MainActivity.mTagsArrayList.add(epc);
-                            }
+                        Tags singleTag = (Tags) vectorTags.getProperty(0);
+                        String epc = (String) singleTag.getProperty(1);
+                        if (epc != null) {
+                            MainActivity.mTagsSparseArray.append(i, epc);
                         }
                     }
                 }
 
                 Log.d(TAG, "Wsdl2CodeFinished: mInventoryProductArrayList length is: " + MainActivity.mInventoryProductArrayList.size());
-                Log.d(TAG, "Wsdl2CodeFinished: mTagsArrayList length is: " + MainActivity.mTagsArrayList.size());
+                Log.d(TAG, "Wsdl2CodeFinished: mTagsArrayList length is: " + MainActivity.mTagsSparseArray.size());
 
-                MainActivity.mRecyclerViewAdapter.loadNewData(MainActivity.mInventoryProductArrayList, MainActivity.mTagsArrayList);
+                MainActivity.mRecyclerViewAdapter.loadNewData(MainActivity.mInventoryProductArrayList, MainActivity.mTagsSparseArray);
             }
 
             @Override
@@ -121,8 +114,12 @@ class CodeEventsHandler {
                 Log.i(TAG, "Wsdl2CodeStartedRequest is in onPostExecute() with not-null data and code: " + mDownloadCode);
 
                 final String result = (String) Data;
-                Log.d(TAG, "Wsdl2CodeFinished: RESULT IS: " + result);
-                setResult(result);
+                mActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(context, result, Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
 
             @Override

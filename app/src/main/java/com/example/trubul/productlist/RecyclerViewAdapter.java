@@ -2,6 +2,7 @@ package com.example.trubul.productlist;
 
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.util.SparseArray;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +17,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 /**
  * Created by krzysiek
  * On 6/2/18.
@@ -24,7 +28,7 @@ import java.util.Locale;
 class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ProductViewHolder> {
     private static final String TAG = "RecyclerViewAdapter";
     private List<InventoryProduct> mInventoryProductList;
-    private List<String> mTagsList;
+    private SparseArray<String> mTagsSparseArray;
 
     private SparseBooleanArray mSelectedItems;
     private ProductViewHolder.ClickListener mClickListener;
@@ -38,9 +42,9 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.Produ
     }
 
     // 0) Update data when new one is downloaded
-    void loadNewData(List<InventoryProduct> newProducts, List<String> newTags) {
+    void loadNewData(List<InventoryProduct> newProducts, SparseArray<String> newTags) {
         mInventoryProductList = newProducts;
-        mTagsList = newTags;
+        mTagsSparseArray = newTags;
         notifyDataSetChanged();  // tell it to registered observers (like RecyclerView) to refresh display
     }
 
@@ -93,8 +97,8 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.Produ
 
 
     String getTag(int position) {
-        if ((mTagsList != null) && (mTagsList.size() != 0)) {
-            return mTagsList.get(position);
+        if ((mTagsSparseArray != null) && (mTagsSparseArray.size() != 0)) {
+            return mTagsSparseArray.get(position);
         } else {
             return null;
         }
@@ -155,12 +159,13 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.Produ
 
     // ViewHolder - no need to call findViewById() all the time and implement OnClickListeners
     static class ProductViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
-        private TextView idTv;
-        private TextView modelTv;
-        private TextView parametersTv;
-        private TextView priceTv;
-        private TextView currentPriceTv;
-        private View selectedOverlay;
+        @BindView(R.id.id_product) TextView idTv;
+        @BindView(R.id.model) TextView modelTv;
+        @BindView(R.id.parameters) TextView parametersTv;
+        @BindView(R.id.price) TextView priceTv;
+        @BindView(R.id.current_price) TextView currentPriceTv;
+        @BindView(R.id.selected_overlay) View selectedOverlay;
+
         private ClickListener clickListener;
 
         public interface ClickListener {
@@ -170,12 +175,7 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.Produ
 
         ProductViewHolder(View itemView, ClickListener listener) {
             super(itemView);
-            idTv = itemView.findViewById(R.id.id_product);
-            modelTv = itemView.findViewById(R.id.model);
-            parametersTv = itemView.findViewById(R.id.parameters);
-            priceTv = itemView.findViewById(R.id.price);
-            currentPriceTv = itemView.findViewById(R.id.current_price);
-            selectedOverlay = itemView.findViewById(R.id.selected_overlay);
+            ButterKnife.bind(this, itemView);
 
             clickListener = listener;
             itemView.setOnClickListener(this);

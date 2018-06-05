@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.SparseArray;
 import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -25,13 +26,15 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MainActivity extends AppCompatActivity implements RecyclerViewAdapter.ProductViewHolder.ClickListener, SwipeRefreshLayout.OnRefreshListener {
+public class MainActivity extends AppCompatActivity implements
+        RecyclerViewAdapter.ProductViewHolder.ClickListener, SwipeRefreshLayout.OnRefreshListener {
 
     private static final String TAG = "MainActivity";
     private Service1 mGetService;
     static List<InventoryProduct> mInventoryProductArrayList;
     static RecyclerViewAdapter mRecyclerViewAdapter;
-    static List<String> mTagsArrayList;
+//    static List<String> mTagsArrayList;
+    static SparseArray<String> mTagsSparseArray;
 
     private ActionModeCallback actionModeCallback = new ActionModeCallback();
     private ActionMode actionMode;
@@ -56,7 +59,8 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
         mySwipeRefreshLayout.setOnRefreshListener(this);
         // Init ArrayLists<>
         mInventoryProductArrayList = new ArrayList<>();
-        mTagsArrayList = new ArrayList<>();
+//        mTagsArrayList = new ArrayList<>();
+        mTagsSparseArray = new SparseArray<>();
 
         // Init RecyclerView, Header and Divider
 //        final RecyclerView recyclerView = findViewById(R.id.recycler_view);
@@ -102,7 +106,6 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
                 if (productList != null) {
                     try {
                         saveService.SaveProductSellingAsync(productList);
-                        Toast.makeText(MainActivity.this, handler.getResult(), Toast.LENGTH_SHORT).show();
 
                         if (actionMode != null) {
                             actionMode.finish();
@@ -129,8 +132,10 @@ public class MainActivity extends AppCompatActivity implements RecyclerViewAdapt
     public void onItemClicked(int position) {
         if (actionMode != null) {
             toggleSelection(position);
-        } else {
+        } else if (mRecyclerViewAdapter.getTag(position) != null) {
             Toast.makeText(this, "Epc is: " + mRecyclerViewAdapter.getTag(position), Toast.LENGTH_LONG).show();
+        } else {
+            Toast.makeText(this, "There's no epc for this product", Toast.LENGTH_SHORT).show();
         }
     }
 
