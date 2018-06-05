@@ -29,17 +29,14 @@ import butterknife.ButterKnife;
 public class MainActivity extends AppCompatActivity implements
         RecyclerViewAdapter.ProductViewHolder.ClickListener, SwipeRefreshLayout.OnRefreshListener {
 
+    @SuppressWarnings("unused")
     private static final String TAG = "MainActivity";
     private Service1 mGetService;
     static List<InventoryProduct> mInventoryProductArrayList;
-    static RecyclerViewAdapter mRecyclerViewAdapter;
-//    static List<String> mTagsArrayList;
     static SparseArray<String> mTagsSparseArray;
-
+    static RecyclerViewAdapter mRecyclerViewAdapter;
     private ActionModeCallback actionModeCallback = new ActionModeCallback();
     private ActionMode actionMode;
-
-//    private SwipeRefreshLayout mySwipeRefreshLayout;
 
     @BindView(R.id.swipe_refresh) SwipeRefreshLayout mySwipeRefreshLayout;
     @BindView(R.id.recycler_view) RecyclerView recyclerView;
@@ -54,30 +51,23 @@ public class MainActivity extends AppCompatActivity implements
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-//        mySwipeRefreshLayout = findViewById(R.id.swipe_refresh);
-//        SwipeRefreshLayout mySwipeRefreshLayout = new SwipeRefreshLayout(this);
+        // Set SwipeRefresh, Lists and Arrays
         mySwipeRefreshLayout.setOnRefreshListener(this);
-        // Init ArrayLists<>
         mInventoryProductArrayList = new ArrayList<>();
-//        mTagsArrayList = new ArrayList<>();
         mTagsSparseArray = new SparseArray<>();
 
-        // Init RecyclerView, Header and Divider
-//        final RecyclerView recyclerView = findViewById(R.id.recycler_view);
+        // Set RecyclerView, Divider and Header
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
-
-//        RecyclerViewHeader header = findViewById(R.id.header);
-        header.attachTo(recyclerView);
-
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), layoutManager.getOrientation());
         recyclerView.addItemDecoration(dividerItemDecoration);
+        header.attachTo(recyclerView);
 
         // Init Adapter
         mRecyclerViewAdapter = new RecyclerViewAdapter(mInventoryProductArrayList, this);
         recyclerView.setAdapter(mRecyclerViewAdapter);
 
-        // Init IWsdl2CodeEvents and Service1
+        // Init IWsdl2CodeEvents and Service1 & get products
         final CodeEventsHandler handler = new CodeEventsHandler(this, this);
         IWsdl2CodeEvents getCodeEvents = handler.getGetProductEvents();
         final IWsdl2CodeEvents saveCodeEvents = handler.getSaveProductEvents();
@@ -86,9 +76,7 @@ public class MainActivity extends AppCompatActivity implements
         final Service1 saveService = new Service1(saveCodeEvents, "http://79.133.199.244/RFIDWebService/service1.asmx?op=SaveProductSelling", 180);
         getProductsFromWebservice();
 
-        // Init Buttons
-//        Button clearBtn = findViewById(R.id.clear_button);
-//        Button saveBtn = findViewById(R.id.save_button);
+        // OnClickListeners
         clearBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -125,6 +113,12 @@ public class MainActivity extends AppCompatActivity implements
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void onRefresh() {
+        getProductsFromWebservice();
+        mySwipeRefreshLayout.setRefreshing(false);
     }
 
     // ItemClickListeners
@@ -169,12 +163,6 @@ public class MainActivity extends AppCompatActivity implements
             actionMode.setTitle("Wybrano: " + String.valueOf(count) + " produkt" + wordInflection);
             actionMode.invalidate();
         }
-    }
-
-    @Override
-    public void onRefresh() {
-        getProductsFromWebservice();
-        mySwipeRefreshLayout.setRefreshing(false);
     }
 
 

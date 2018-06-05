@@ -27,7 +27,6 @@ class CodeEventsHandler {
 
     private IWsdl2CodeEvents getProductEvents;
     private IWsdl2CodeEvents saveProductEvents;
-//    private static String mResult;
 
     IWsdl2CodeEvents getGetProductEvents() {
         return getProductEvents;
@@ -71,7 +70,7 @@ class CodeEventsHandler {
                         Tags singleTag = (Tags) vectorTags.getProperty(0);
                         String epc = (String) singleTag.getProperty(1);
                         if (epc != null) {
-                            MainActivity.mTagsSparseArray.append(i, epc);
+                            MainActivity.mTagsSparseArray.append(i, epc);  // SparseArray<String>
                         }
                     }
                 }

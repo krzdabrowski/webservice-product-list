@@ -26,6 +26,7 @@ import butterknife.ButterKnife;
  */
 
 class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.ProductViewHolder> {
+    @SuppressWarnings("unused")
     private static final String TAG = "RecyclerViewAdapter";
     private List<InventoryProduct> mInventoryProductList;
     private SparseArray<String> mTagsSparseArray;
@@ -94,7 +95,6 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.Produ
             return 1;  // 1 = placeholder
         }
     }
-
 
     String getTag(int position) {
         if ((mTagsSparseArray != null) && (mTagsSparseArray.size() != 0)) {
